@@ -12,10 +12,14 @@ class Events {
     this.classifier = bayes()
     
     // use the first 100 records to train the model
-    for (let i = 0; i < 100; i++) {
-       this.classifier.learn(this.confirmed[i][CONFFIELD], 'confirmed')
-       this.classifier.learn(this.deleted[i][DELFIELD], 'deleted')
+    for (let i = 0; i < this.confirmed.length; i++) {
+     this.classifier.learn(this.confirmed[i][CONFFIELD], 'confirmed')
     }
+    
+    for (let i = 0; i < this.deleted.length; i++) {
+     this.classifier.learn(this.deleted[i][DELFIELD], 'deleted')
+    }
+
     return Promise.resolve()
   }
 
