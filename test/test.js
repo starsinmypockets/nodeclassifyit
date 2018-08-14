@@ -10,8 +10,11 @@ describe('test classifier', async () => {
   const confTests = cl.confirmed.length - 100
   const delTests = cl.deleted.length - 100
   
+  // keep track of miscalcs
   let falseConf = 0
   let falseDel = 0
+  let falseConfJson = []
+  let falseDelJson = []
   
   console.log("CONFIRMED", confTests)
   console.log("DELETED", delTests)
@@ -19,6 +22,7 @@ describe('test classifier', async () => {
   for (let i = 100; i < 100 + confTests; i++) {
     if (cl.classify(cl.confirmed[i][CONFFIELD]) !== 'confirmed') {
       falseDel++
+      falseDelJson.push(cl.confirmed[i][CONFFIELD])
     }
     console.log(">>>", cl.classify(cl.confirmed[i][CONFFIELD]))
   }
