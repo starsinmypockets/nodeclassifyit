@@ -62,18 +62,17 @@ class Events {
       console.log(">>>>>>>>>>>>>>>denied>>>>>>>>>>>>>>>>>>>>>>>>")
       console.log(deletedEvents)
       console.log(">>>>>>>>>>>>>>>>denied>>>>>>>>>>>>>>>>>>>>>>>")
+      console.log("confirmed", confirmedEvents.length, "deleted", deletedEvents.length)
     } catch (e) {
       console.error("Error at classifyInput", e)
     }
   }
 }
 
-/*
 const cl = new Events()
 cl.init().then(() => {
   cl.classifyInput()
 })
-*/
 
 module.exports = {
   Events: Events
