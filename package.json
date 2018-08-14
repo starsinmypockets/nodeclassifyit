@@ -4,6 +4,7 @@
   "description": "Classify events based on description.",
   "main": "classify.js",
   "dependencies": {
+    "bayes": "0.0.7",
     "csvtojson": "^2.0.8"
   },
   "devDependencies": {

@@ -12,7 +12,13 @@ describe('Array', function() {
 
 describe('test classifier', () => {
   cl.init(() => {
-    console.log(cl.confirmed.length, cl.deleted.length)
-    assert(true)
+    it ('should initialize without error', () => {
+      console.log(cl.confirmed.length, cl.deleted.length)
+      for (let i = 144; i < 150; i++) {
+        console.log("CONFIRMED", cl.confirmed[i].field9)
+        console.log("DELETED", cl.deleted[i].field18)
+      }
+      assert(true)
+    })
   })
 })
