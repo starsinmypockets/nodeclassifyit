@@ -10,13 +10,13 @@ class Events {
     this.confirmed = await csv().fromFile(_confirmed)
     this.deleted = await csv().fromFile(_deleted)
     this.classifier = bayes()
-
+    
+    // use the first 100 records to train the model
     for (let i = 0; i < 100; i++) {
        this.classifier.learn(this.confirmed[i][CONFFIELD], 'confirmed')
        this.classifier.learn(this.deleted[i][DELFIELD], 'deleted')
     }
-
-    cb.bind(this)()
+    return Promise.resolve()
   }
 
   classify(str) {
