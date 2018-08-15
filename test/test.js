@@ -1,14 +1,15 @@
 const assert = require('assert')
 const Classify = require('../classify.js').Events
+const config = require('../config.js')
 const cl = new Classify()
-const CONFFIELD = 'field9'
-const DELFIELD = 'field18'
+const CONFFIELD = 'field9' // @@TODO use config
+const DELFIELD = 'field18' // @@TODO use config
 
 describe('test classifier', async () => {
   console.log('INIT')
   await cl.init()
-  const confTests = cl.confirmed.length - 100
-  const delTests = cl.deleted.length - 100
+  const confTests = cl.confirmed.length
+  const delTests = cl.deleted.length 
   
   // keep track of miscalcs
   let falseConf = 0
@@ -16,22 +17,19 @@ describe('test classifier', async () => {
   let falseConfJson = []
   let falseDelJson = []
   
-  console.log("CONFIRMED", confTests)
-  console.log("DELETED", delTests)
+  // @@TODO use title field in conjunction with description
       
-  for (let i = 100; i < 100 + confTests; i++) {
+  for (let i = 100; i < confTests; i++) {
     if (cl.classify(cl.confirmed[i][CONFFIELD]) !== 'confirmed') {
       falseDel++
       falseDelJson.push(cl.confirmed[i][CONFFIELD])
     }
-    console.log(">>>", cl.classify(cl.confirmed[i][CONFFIELD]))
   }
   
-  for (let i = 100; i < 100 + delTests; i++) {
+  for (let i = 100; i < delTests; i++) {
     if (cl.classify(cl.deleted[i][DELFIELD]) !== 'deleted') {
       falseConf++
     }
-    console.log(">>>", cl.classify(cl.deleted[i][DELFIELD]))
   }
 
   console.log("Confirmed success: ", falseDel, confTests, falseDel / confTests)
