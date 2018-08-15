@@ -1,4 +1,6 @@
 const csv = require('csvtojson')
+const json2csv = require('json2csv').parse
+const fs = require('fs')
 const bayes = require('bayes')
 const config = require('./config.js')
 
@@ -36,9 +38,10 @@ class Events {
   }
 
   async classifyInput() {
+    let confirmedEvents = []
+    let deletedEvents = []
+    
     try {
-      let confirmedEvents = []
-      let deletedEvents = []
       const events = await csv().fromFile(config.inputPath)
       
       for (let i = 0; i < events.length; i++) {
@@ -56,22 +59,42 @@ class Events {
         }
       }
 
-      console.log(">>>>>>>>>>>>>>confirmed>>>>>>>>>>>>>>>>>>>>>>>>>")
-      console.log(confirmedEvents)
-      console.log(">>>>>>>>>>>>>>confirmed>>>>>>>>>>>>>>>>>>>>>>>>>")
-      console.log(">>>>>>>>>>>>>>>denied>>>>>>>>>>>>>>>>>>>>>>>>")
-      console.log(deletedEvents)
-      console.log(">>>>>>>>>>>>>>>>denied>>>>>>>>>>>>>>>>>>>>>>>")
       console.log("confirmed", confirmedEvents.length, "deleted", deletedEvents.length)
     } catch (e) {
       console.error("Error at classifyInput", e)
+    } finally {
+      return { confirmed: confirmedEvents, deleted: deletedEvents }
     }
+  }
+
+  async outputCSV(filename, data) {
+    const body = json2csv(data)
+    const filepath = __dirname + '/' + config.outputDir + '/' + filename + '.csv'
+
+    try {
+      fs.writeFile(filepath, body, 'utf8', (err) => {
+        if (err) {
+            throw (err)
+        }
+      })
+    } catch (e) {
+      console.log("Error outputing CSV ", filename, e)
+    } 
   }
 }
 
 const cl = new Events()
 cl.init().then(() => {
-  cl.classifyInput()
+  cl.classifyInput().then(res => {
+    Promise.all([
+      cl.outputCSV('confirmed', res.confirmed),
+      cl.outputCSV('deleted', res.deleted)
+    ]).then(() => {
+      console.log('Output categorized CSV files to configured path')
+    }).catch(e => {
+      console.log('Error generating CSV files', e)
+    })
+  })
 })
 
 module.exports = {
