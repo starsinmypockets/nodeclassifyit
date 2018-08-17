@@ -1,13 +1,16 @@
 const assert = require('assert')
-const Classify = require('../classify.js').Events
+const Classify = require('../events.js').Events
 const config = require('../config.js')
 const cl = new Classify()
-const CONFFIELD = 'field9' // @@TODO use config
-const DELFIELD = 'field18' // @@TODO use config
+const CFT = config.confirmedTrainTitleField
+const CFD = config.confirmedTrainField
+const DFT = config.deletedTrainTitleField
+const DFD =config.deletedTrainField
 
 describe('test classifier', async () => {
   console.log('INIT')
   await cl.init()
+  cl.showModel()
   const confTests = cl.confirmed.length
   const delTests = cl.deleted.length 
   
@@ -19,19 +22,38 @@ describe('test classifier', async () => {
   
   // @@TODO use title field in conjunction with description
       
-  for (let i = 100; i < confTests; i++) {
-    if (cl.classify(cl.confirmed[i][CONFFIELD]) !== 'confirmed') {
+  for (let i = 0; i < confTests; i++) {
+    const str = cl.confirmed[i][CFT] + ' ' + cl.confirmed[i][CFD] 
+    const res = cl.classify(str)
+    if (res !== 'confirmed') {
       falseDel++
-      falseDelJson.push(cl.confirmed[i][CONFFIELD])
+      falseDelJson.push(cl.confirmed[i])
     }
   }
   
-  for (let i = 100; i < delTests; i++) {
-    if (cl.classify(cl.deleted[i][DELFIELD]) !== 'deleted') {
+  for (let i = 0; i < delTests; i++) {
+    const str = cl.deleted[i][DFT] + ' ' + cl.deleted[i][DFD] 
+    const res = cl.classify(str)
+    
+    if (res !== 'deleted') {
       falseConf++
+      falseDelJson.push(cl.confirmed[i])
     }
   }
 
-  console.log("Confirmed success: ", falseDel, confTests, falseDel / confTests)
-  console.log("Confirmed deletes: ", falseConf, delTests, falseConf / delTests)
+  const results = {
+    confirmedPositive: {
+      testSetSize: confTests,
+      falseResult: falseDel,
+      accurracy: 1 - falseDel / confTests
+    },
+    confirmedNegative: {
+      testSetSize: delTests,
+      falseResult: falseConf,
+      accurracy: 1 - falseConf / delTests
+    }
+  }
+
+  console.log('Test results')
+  console.dir(results)
 })

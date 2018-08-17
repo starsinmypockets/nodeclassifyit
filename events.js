@@ -9,6 +9,25 @@ const lastNames = require('./names.json')
 const placeNames = require('./places.json')
 const myStopWords = firstNames.concat(middleNames).concat(lastNames).concat(placeNames).map(w => w.toLowerCase())
 
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
+
 console.log("stop words:", myStopWords.length, firstNames.length, middleNames.length, lastNames.length, placeNames.length)
 
 const _confirmed = 'train/confirmed.csv'
@@ -16,24 +35,37 @@ const _deleted = 'train/deleted.csv'
 
 class Events {
   async init(cb) {
-    this.confirmed = await csv().fromFile(_confirmed)
-    this.deleted = await csv().fromFile(_deleted)
-    this.classifier = bayes({
-      tokenizer: (text) => {
-        return text.toLowerCase()
-          .replace(/(https?:\/\/[^\s]+)/g,"") // no urls
-          .replace(/[.,\/#!$%'\^&\*;:{}=\-_`~()\r\n\t\\]/g,"") // no punctuation newline tab etc
-          .replace(/[0-9]/g, '') // no numbers
-          .split(' ')
-          .filter(w => myStopWords.indexOf(w) < 0)
-      }
-    })
-     
-    this.classifier.learn(config.confirmed_words.join(', '), 'confirmed')
-    this.classifier.learn(config.delete_words.join(', '), 'deleted')
+    debugger;
+    this.confirmed = shuffle(await csv().fromFile(_confirmed))
+    this.deleted = shuffle(await csv().fromFile(_deleted))
+    
+    console.log('confirmed', this.confirmed[0])
+    console.log('deleted', this.deleted[0])
+    this.classifier = bayes({tokenizer: this.tokenizer})
+    this.train()
+    
+    return Promise.resolve()
+  }
+  
+  tokenizer(text) {
+    if (text){
+    return text.toLowerCase()
+      .replace(/(https?:\/\/[^\s]+)/g,"") // no urls
+      .replace(/[.,\/#!$%'\^&\*;:{}=\-_`~()\r\n\t\\]/g,"") // no punctuation newline tab etc
+      .replace(/[0-9]/g, '') // no numbers
+      .split(' ')
+      .filter(w => myStopWords.indexOf(w) < 0)
+    } else {
+      return []
+    }
+  }
+  
+  train() {
+      // less weight on provided confirmed words to avoid false pos
+      this.classifier.learn(config.confirmed_words.join(', '), 'confirmed')
 
     // use the first 100 records to train the model
-    for (let i = 0; i < this.confirmed.length; i++) {
+    for (let i = 0; i < (this.confirmed.length * .2); i++) {
       const title = this.confirmed[i][config.confirmedTrainTitleField]
       const desc = this.confirmed[i][config.confirmedTrainField]
       const str = title + ' ' + desc
@@ -41,16 +73,15 @@ class Events {
       this.classifier.learn(str, 'confirmed')
     }
     
-    for (let i = 0; i < this.deleted.length ; i++) {
+    for (let i = 0; i < (this.deleted.length *.2); i++) {
       const title = this.deleted[i][config.deletedTrainTitleField]
       const desc = this.deleted[i][config.deletedTrainField]
       const str = title + ' ' + desc
 
+      // more weight on provided terms to prefer false negative
+      this.classifier.learn(config.delete_words.join(', '), 'deleted')
       this.classifier.learn(str, 'deleted')
     }
-    
-    /* console.dir(JSON.parse(this.classifier.toJson())) */
-    return Promise.resolve()
   }
 
   classify(str) {
@@ -101,21 +132,11 @@ class Events {
       console.log("Error outputing CSV ", filename, e)
     } 
   }
+  
+  showModel() {
+    console.dir(JSON.parse(this.classifier.toJson()))
+  }
 }
-
-const cl = new Events()
-cl.init().then(() => {
-  cl.classifyInput().then(res => {
-    Promise.all([
-      cl.outputCSV('confirmed', res.confirmed),
-      cl.outputCSV('deleted', res.deleted)
-    ]).then(() => {
-      console.log('Output categorized CSV files to configured path')
-    }).catch(e => {
-      console.log('Error generating CSV files', e)
-    })
-  })
-})
 
 module.exports = {
   Events: Events
