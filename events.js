@@ -28,26 +28,36 @@ function shuffle(array) {
   return array;
 }
 
-console.log("stop words:", myStopWords.length, firstNames.length, middleNames.length, lastNames.length, placeNames.length)
-
 const _confirmed = 'train/confirmed.csv'
 const _deleted = 'train/deleted.csv' 
 
 class Events {
   async init(cb) {
-    debugger;
     this.confirmed = shuffle(await csv().fromFile(_confirmed))
     this.deleted = shuffle(await csv().fromFile(_deleted))
-    
-    console.log('confirmed', this.confirmed[0])
-    console.log('deleted', this.deleted[0])
-    this.classifier = bayes({tokenizer: this.tokenizer})
-    this.train()
-    
+    this.classifier = bayes({tokenizer: this.tokenize})
+    this.train()  
+
     return Promise.resolve()
   }
+
+  debug() {
+    const m = JSON.parse(this.classifier.toJson())
+    const confWordCount = m.wordFrequencyCount.confirmed
+    const delWordCount = m.wordFrequencyCount.deleted
+    const newWordFrequencyCount = [confWordCount, delWordCount].map(col => {
+      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+      Object.keys(col).forEach(k => {
+        if (col[k] > 20) {
+          console.log(k, col[k])
+        }
+      })
+    })
+    
+    this.showModel()
+  }
   
-  tokenizer(text) {
+  tokenize(text) {
     if (text){
     return text.toLowerCase()
       .replace(/(https?:\/\/[^\s]+)/g,"") // no urls
@@ -60,12 +70,9 @@ class Events {
     }
   }
   
+  // @@TODO paramaterize training vs testing sets
   train() {
-      // less weight on provided confirmed words to avoid false pos
-      this.classifier.learn(config.confirmed_words.join(', '), 'confirmed')
-
-    // use the first 100 records to train the model
-    for (let i = 0; i < (this.confirmed.length * .2); i++) {
+    for (let i = 0; i < (this.confirmed.length); i++) {
       const title = this.confirmed[i][config.confirmedTrainTitleField]
       const desc = this.confirmed[i][config.confirmedTrainField]
       const str = title + ' ' + desc
@@ -73,24 +80,35 @@ class Events {
       this.classifier.learn(str, 'confirmed')
     }
     
-    for (let i = 0; i < (this.deleted.length *.2); i++) {
+    for (let i = 0; i < (this.deleted.length); i++) {
       const title = this.deleted[i][config.deletedTrainTitleField]
       const desc = this.deleted[i][config.deletedTrainField]
       const str = title + ' ' + desc
 
-      // more weight on provided terms to prefer false negative
-      this.classifier.learn(config.delete_words.join(', '), 'deleted')
       this.classifier.learn(str, 'deleted')
     }
+  }
+
+  arrayOverlap(arr1, arr2) {
+    const overlap = arr1.filter(value => -1 !== arr2.indexOf(value))
+    return overlap
   }
 
   classify(str) {
     return this.classifier.categorize(str)
   }
 
+  // events with delete_words classify immediately
+  classifyByKeyword(eventArr, keywordArr, cat) {
+    for (let i = 0; i < eventArr.length; i++) {
+      console.log(this.arrayOverlap(eventArr[i], keyWordArr).length)
+    }
+  }
+
   async classifyInput() {
     let confirmedEvents = []
     let deletedEvents = []
+    let leftovers = []
     
     try {
       const events = await csv().fromFile(config.inputPath)
@@ -99,14 +117,28 @@ class Events {
         const desc = events[i][config.inputDataField]
         const title = events[i][config.inputDataTitleField]
         const str = desc + ' ' + title
-        const result = this.classify(str)
-
-        if (result === 'confirmed') {
-          confirmedEvents.push(events[i])
-        } else if (result === 'deleted') {
+        const tokens = this.tokenize(str)
+        // @@TODO need to handle ngrams ?
+        
+        // 1. if delete_words present, add to deletedEvents
+        if (this.arrayOverlap(tokens, config.delete_words).length > 0) {
           deletedEvents.push(events[i])
-        } else {
-          console.log('Error classifying ', i)
+        }
+        // 2. if confirmed_words present, add to confirmedEvents
+        else if (this.arrayOverlap(tokens, config.confirmed_words).length > 0) {
+          confirmedEvents.push(events[i])
+        } 
+        // 3. use the bayesian clasifier to best guess what remains
+        else {
+          const result = this.classify(str)
+
+          if (result === 'confirmed') {
+            confirmedEvents.push(events[i])
+          } else if (result === 'deleted') {
+            deletedEvents.push(events[i])
+          } else {
+            console.log('Error classifying ', i)
+          }
         }
       }
 

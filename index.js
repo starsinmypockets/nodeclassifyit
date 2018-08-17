@@ -1,4 +1,4 @@
-const Events = require('./events.js')
+const Events = require('./events.js').Events
 const cl = new Events()
 
 cl.init().then(() => {

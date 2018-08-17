@@ -10,7 +10,6 @@ const DFD =config.deletedTrainField
 describe('test classifier', async () => {
   console.log('INIT')
   await cl.init()
-  cl.showModel()
   const confTests = cl.confirmed.length
   const delTests = cl.deleted.length 
   
@@ -21,39 +20,42 @@ describe('test classifier', async () => {
   let falseDelJson = []
   
   // @@TODO use title field in conjunction with description
-      
-  for (let i = 0; i < confTests; i++) {
-    const str = cl.confirmed[i][CFT] + ' ' + cl.confirmed[i][CFD] 
-    const res = cl.classify(str)
-    if (res !== 'confirmed') {
-      falseDel++
-      falseDelJson.push(cl.confirmed[i])
-    }
-  }
   
-  for (let i = 0; i < delTests; i++) {
-    const str = cl.deleted[i][DFT] + ' ' + cl.deleted[i][DFD] 
-    const res = cl.classify(str)
+  cl.classifyInput()
+
+
+  /* for (let i = 0; i < confTests; i++) { */
+  /*   const str = cl.confirmed[i][CFT] + ' ' + cl.confirmed[i][CFD] */ 
+  /*   const res = cl.classify(str) */
+  /*   if (res !== 'confirmed') { */
+  /*     falseDel++ */
+  /*     falseDelJson.push(cl.confirmed[i]) */
+  /*   } */
+  /* } */
+  
+  /* for (let i = 0; i < delTests; i++) { */
+  /*   const str = cl.deleted[i][DFT] + ' ' + cl.deleted[i][DFD] */ 
+  /*   const res = cl.classify(str) */
     
-    if (res !== 'deleted') {
-      falseConf++
-      falseDelJson.push(cl.confirmed[i])
-    }
-  }
+  /*   if (res !== 'deleted') { */
+  /*     falseConf++ */
+  /*     falseDelJson.push(cl.confirmed[i]) */
+  /*   } */
+  /* } */
 
-  const results = {
-    confirmedPositive: {
-      testSetSize: confTests,
-      falseResult: falseDel,
-      accurracy: 1 - falseDel / confTests
-    },
-    confirmedNegative: {
-      testSetSize: delTests,
-      falseResult: falseConf,
-      accurracy: 1 - falseConf / delTests
-    }
-  }
+/*   const results = { */
+/*     confirmedPositive: { */
+/*       testSetSize: confTests, */
+/*       falseResult: falseDel, */
+/*       accurracy: 1 - falseDel / confTests */
+/*     }, */
+/*     confirmedNegative: { */
+/*       testSetSize: delTests, */
+/*       falseResult: falseConf, */
+/*       accurracy: 1 - falseConf / delTests */
+/*     } */
+/*   } */
 
-  console.log('Test results')
-  console.dir(results)
+/*   console.log('Test results') */
+/*   console.dir(results) */
 })
