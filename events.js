@@ -129,26 +129,31 @@ class Events {
         const desc = events[i][this.config.inputDataField]
         const title = events[i][this.config.inputDataTitleField]
         const str = (desc + ' ' + title).toLowerCase()
-        let doProbSort = false
+        let classified = false
         
         // for each search category, do string search and bucket
+        // set found to true once we've got a hit
+        // only the first hit counts
         this.config.searchOrder.forEach(searchSet => {
+          // initialize bucket if not exists
           const searchCat = this.searchCat(searchSet)
           if (!eventCats[searchCat]) eventCats[searchCat] = []
 
-          this.config[searchSet].forEach(searchStr => {
-            const re = new RegExp(searchStr.toLowerCase(), "g")
-            if (re.test(str)) {
-              eventCats[searchCat].push(events[i])
-            } else {
-              doProbSort = true
-            }
-          }) 
+          // if we're still trying to classify this one...
+          if (!classified) {
+            this.config[searchSet].forEach(searchStr => {
+              const re = new RegExp(searchStr.toLowerCase(), "g")
+              if (re.test(str)) {
+                classified = true // BINGO
+                // add event to bucket
+                eventCats[searchCat].push(events[i])
+              } 
+            })
+          } 
         })
 
-        
-        // if no results from string search, use bayesian classifier
-        if (doProbSort && this.config.doProbSort) {
+        // if still not found... use bayes
+        if (!classified) {
           const filtered = this.tokenize(str).join(' ')
           const result = this.classify(filtered)
           eventCats[result].push

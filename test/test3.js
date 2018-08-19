@@ -26,7 +26,7 @@ describe('array overlap works', async () => {
         cl.config.inputTitleField = config.deletedTrainTitleField
         cl.config.inputDataField = config.deletedTrainField
         const results = await cl.classifyInput()
-        console.log("Classify confirmed results: ", results.confirmed.length, results.deleted.length)
+        console.log("Classify deleted results: ", results.confirmed.length, results.deleted.length)
         assert('Has confirmed results... few', results.confirmed && results.confirmed.length < 100)
         assert('Has deleted results.... many', results.deleted && results.deleted.length > 100)
       })
