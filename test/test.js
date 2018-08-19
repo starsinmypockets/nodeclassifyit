@@ -8,7 +8,6 @@ const DFT = config.deletedTrainTitleField
 const DFD =config.deletedTrainField
 
 describe('test classifier', async () => {
-  console.log('INIT')
   await cl.init()
   const confTests = cl.confirmed.length
   const delTests = cl.deleted.length 
@@ -51,6 +50,5 @@ describe('test classifier', async () => {
     }
   }
 
-  console.log('Test results')
   console.dir(results)
 })
