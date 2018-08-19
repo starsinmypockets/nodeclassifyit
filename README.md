@@ -5,7 +5,7 @@ Use an event title plus description to classify events.
 * Make sure node js is installed https://nodejs.org/en/download/
 * clone this directory
 * run `npm install`
-* cp example config to `config.js`
+* open `config/config.json`
 * make sure that `inputPath` is the path to your csv data
 * make sure that `outputPath` is an existing directory
 * make sure that `inputTiteField` matches title field for event
