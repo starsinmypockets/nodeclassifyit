@@ -1,6 +1,6 @@
 {
   "inputPath": "input.csv",
-  "outputDir": "/Users/paulwalker/output2",
+  "outputDir": "./output",
   "inputTitleField": "name",
   "inputDataField": "description",
   "searchOrder": [

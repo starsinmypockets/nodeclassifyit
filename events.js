@@ -2,7 +2,7 @@ const csv = require('csvtojson')
 const json2csv = require('json2csv').parse
 const fs = require('fs')
 const bayes = require('bayes')
-debugger;
+
 function shuffle(array) {
   var currentIndex = array.length, temporaryValue, randomIndex;
 
@@ -47,6 +47,7 @@ class Events {
       this.confirmed = shuffle(await csv().fromFile(_confirmed))
       this.deleted = shuffle(await csv().fromFile(_deleted))
       this.config = JSON.parse(fs.readFileSync(__dirname + '/config/config.json', 'utf8'))
+      this.config.doProbSort = true
 
       this.stopWords = loadStopWords()
       this.classifier = bayes({tokenizer: this.tokenize})
@@ -118,6 +119,7 @@ class Events {
   }
 
   async classifyInput() {
+    debugger;
     const eventCats = {}
 
     try {
@@ -143,9 +145,10 @@ class Events {
             }
           }) 
         })
+
         
         // if no results from string search, use bayesian classifier
-        if (doProbSort) {
+        if (doProbSort && this.config.doProbSort) {
           const filtered = this.tokenize(str).join(' ')
           const result = this.classify(filtered)
           eventCats[result].push
@@ -160,6 +163,7 @@ class Events {
   }
 
   async outputCSV(filename, data) {
+    console.log('CSV output info:', this.config.outputDir, filename)
     const body = json2csv(data)
     const filepath = this.config.outputDir + '/' + filename + '.csv'
 
@@ -171,7 +175,7 @@ class Events {
       })
     } catch (e) {
       console.log("Error outputing CSV ", filename, e)
-      console.log("Make sure to use an absolute path to the output directory in config/config.js. Make sure the output directory exists, and that it is writeable. :)")
+      console.log("Make sure to use an absolute path to the output directory in config/config.json. Make sure the output directory exists, and that it is writeable. :)")
     } 
   }
   

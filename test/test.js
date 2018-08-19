@@ -1,13 +1,13 @@
 const assert = require('assert')
 const Classify = require('../events.js').Events
-const config = require('../config/config.js')
+const config = require('../config/config.json')
 const cl = new Classify()
 const CFT = config.confirmedTrainTitleField
 const CFD = config.confirmedTrainField
 const DFT = config.deletedTrainTitleField
 const DFD =config.deletedTrainField
 
-describe('test classifier', async () => {
+describe('test bayes classifier', async () => {
   await cl.init()
   const confTests = cl.confirmed.length
   const delTests = cl.deleted.length 

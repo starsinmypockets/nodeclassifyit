@@ -20,9 +20,6 @@
     "url": "git@gitlab.grassrootsresearchgroup.com:Walker/classify-events.git"
   },
   "bin": "index.js",
-  "pkg": {
-    "assets": "config/*"
-  },
   "author": "",
   "license": "ISC"
 }
