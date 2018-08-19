@@ -2,11 +2,11 @@ const csv = require('csvtojson')
 const json2csv = require('json2csv').parse
 const fs = require('fs')
 const bayes = require('bayes')
-const config = require('./config.js')
-const firstNames = require('./first-names.json')
-const middleNames = require('./middle-names.json')
-const lastNames = require('./names.json')
-const placeNames = require('./places.json')
+const config = require('./config/config.js')
+const firstNames = require('./config/first-names.json')
+const middleNames = require('./config/middle-names.json')
+const lastNames = require('./config/names.json')
+const placeNames = require('./config/places.json')
 const myStopWords = firstNames.concat(middleNames).concat(lastNames).concat(placeNames).map(w => w.toLowerCase())
 
 function shuffle(array) {

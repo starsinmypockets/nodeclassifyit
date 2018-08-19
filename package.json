@@ -19,6 +19,9 @@
     "type": "git",
     "url": "git@gitlab.grassrootsresearchgroup.com:Walker/classify-events.git"
   },
+  "pkg": {
+    "assets": "views/**/*"
+  },
   "author": "",
   "license": "ISC"
 }

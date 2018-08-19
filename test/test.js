@@ -1,6 +1,6 @@
 const assert = require('assert')
 const Classify = require('../events.js').Events
-const config = require('../config.js')
+const config = require('../config/config.js')
 const cl = new Classify()
 const CFT = config.confirmedTrainTitleField
 const CFD = config.confirmedTrainField
