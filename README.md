@@ -7,9 +7,12 @@ Use an event title plus description to classify events.
 * run `npm install`
 * open `config/config.json`
 * make sure that `inputPath` is the path to your csv data
-* make sure that `outputPath` is an existing directory
-* make sure that `inputTiteField` matches title field for event
+* **NOTE** by default this is `input.csv` in the root directory
+* make sure that `outputPath` is an existing directory (ie, create `project/output/` directory if it does not exist)
+* make sure that `inputTitleField` matches title field for event
+* **NOTE** by default `inputTitleField` is "name"
 * make sure that `inputDataField` matches event description field
+* **NOTE** that by default `inputDataField` is "description"
 * test system with `npm run test`
 
 ## Run!
