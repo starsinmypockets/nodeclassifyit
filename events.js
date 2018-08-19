@@ -105,52 +105,55 @@ class Events {
     }
   }
 
+  searchCat(str) {
+    return str.split('_')[0]
+  }
+
   async classifyInput() {
-    let confirmedEvents = []
-    let deletedEvents = []
-    let leftovers = []
-    
+    const eventCats = {}
+
     try {
       const events = await csv().fromFile(config.inputPath)
+      console.log("events", events.length)
       
       for (let i = 0; i < events.length; i++) {
         const desc = events[i][config.inputDataField]
         const title = events[i][config.inputDataTitleField]
-        const str = desc + ' ' + title
-        const tokens = this.tokenize(str)
-        // @@TODO need to handle ngrams ?
+        const str = (desc + ' ' + title).toLowerCase()
+        let doProbSort = false
         
-        // 1. if delete_words present, add to deletedEvents
-        if (this.arrayOverlap(tokens, config.delete_words).length > 0) {
-          deletedEvents.push(events[i])
-        }
-        // 2. if confirmed_words present, add to confirmedEvents
-        else if (this.arrayOverlap(tokens, config.confirmed_words).length > 0) {
-          confirmedEvents.push(events[i])
-        } 
-        // 3. use the bayesian clasifier to best guess what remains
-        else {
-          const result = this.classify(str)
+        // for each search category, do string search and bucket
+        config.searchOrder.forEach(searchSet => {
+          const searchCat = this.searchCat(searchSet)
+          if (!eventCats[searchCat]) eventCats[searchCat] = []
 
-          if (result === 'confirmed') {
-            confirmedEvents.push(events[i])
-          } else if (result === 'deleted') {
-            deletedEvents.push(events[i])
-          } else {
-            console.log('Error classifying ', i)
-          }
+          config[searchSet].forEach(searchStr => {
+            const re = new RegExp(searchStr.toLowerCase(), "g")
+            if (re.test(str)) {
+              eventCats[searchCat].push(events[i])
+            } else {
+              doProbSort = true
+            }
+          }) 
+        })
+        
+        // if no results from string search, use bayesian classifier
+        if (doProbSort) {
+          const filtered = this.tokenize(str).join(' ')
+          const result = this.classify(filtered)
+          console.log("RR", result)
+          eventCats[result].push
         }
       }
-
-      console.log("confirmed", confirmedEvents.length, "deleted", deletedEvents.length)
     } catch (e) {
       console.error("Error at classifyInput", e)
     } finally {
-      return { confirmed: confirmedEvents, deleted: deletedEvents }
+      console.log("events", Object.keys(eventCats).map(cat => {console.log(cat, eventCats[cat].length)}))
+      return eventCats
     }
   }
 
-  async outputCSV(filename, data) {
+  async outputCSV(fmlename, data) {
     const body = json2csv(data)
     const filepath = __dirname + '/' + config.outputDir + '/' + filename + '.csv'
 

@@ -15,4 +15,9 @@ describe('array overlap works', async () => {
     assert(ov1.length === 2)
     assert(ov2.length === 0)
   })
+
+  describe('test searchCat', () => {
+    assert(cl.searchCat('foo_bar_baz') === 'foo')
+    assert(cl.searchCat('bar_bell') === 'bar')
+  })
 })
