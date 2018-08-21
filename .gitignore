@@ -1,9 +1,5 @@
 *.sw*
 node_modules
-output/*
-train/*
-config/*
-output/*
 config.js
 input.csv
 .DS_Store
